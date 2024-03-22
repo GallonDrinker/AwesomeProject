@@ -25,6 +25,22 @@ const home: React.FC = () => {
           <Text style={styles.productName}>Product 2</Text>
           <Text style={styles.productPrice}>$29.99</Text>
         </TouchableOpacity>
+        <TouchableOpacity style={styles.productItem}>
+          <Image
+            source={image}
+            style={styles.productImage}
+          />
+          <Text style={styles.productName}>Product 3</Text>
+          <Text style={styles.productPrice}>$39.99</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.productItem}>
+          <Image
+            source={image}
+            style={styles.productImage}
+          />
+          <Text style={styles.productName}>Product 3</Text>
+          <Text style={styles.productPrice}>$39.99</Text>
+        </TouchableOpacity>
         {/* Add more product items as needed */}
       </View>
     </View>
