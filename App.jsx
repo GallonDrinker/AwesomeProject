@@ -16,9 +16,9 @@ export default function App() {
     //     HEYYYYYYYYYss</Text>
     //   <StatusBar style="auto" /> */}
       <NavigationContainer>
-      <welcome_stack.Navigator>
+      <welcome_stack.Navigator initialRouteName='Login'>
         <welcome_stack.Screen name="Welcome" component={landing} />
-        <welcome_stack.Screen name="Login" component={login} />
+        <welcome_stack.Screen name="Login" component={login} options={{headerShown : false }} />
         <welcome_stack.Screen name="Home" component={home} />
       </welcome_stack.Navigator>
     </NavigationContainer>
