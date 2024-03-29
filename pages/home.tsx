@@ -1,12 +1,29 @@
 import React from 'react';
-import { StyleSheet, View, Text, TouchableOpacity, Image } from 'react-native';
+import { StyleSheet, View, Text, TouchableOpacity, Image, ImageSourcePropType } from 'react-native';
 import image from "./../assets/background.jpg";
 
-const home: React.FC = () => {
+// const home = (props: any) => {
+//   const handleClick = () => {
+//     console.log("PRESSED!");
+//     props.navigation.navigate("Profile");
+//   };
+
+const home: React.FC = (props: any) => {
+  const handleClick = () => {
+    console.log("PRESSED!");
+    props.navigation.navigate("Profile");
+  };
   return (
     <View style={styles.container}>
+      <TouchableOpacity 
+       onPress={handleClick}
+       style={styles.buttonContainer}>
+
+        <Text style={styles.buttonText}>Button</Text>
+        
+      </TouchableOpacity>
       <View style={styles.header}>
-        <Text style={styles.headerText}>Welcome to Good Old Deals</Text>
+        <Text style={styles.headerText}>Welcome </Text>
       </View>
       <View style={styles.productContainer}>
         <TouchableOpacity style={styles.productItem}>
@@ -46,6 +63,7 @@ const home: React.FC = () => {
     </View>
   );
 };
+
 
 const styles = StyleSheet.create({
   container: {
@@ -89,8 +107,18 @@ const styles = StyleSheet.create({
     color: '#888',
     marginTop: 5,
   },
+  buttonContainer: {
+    position: 'absolute',
+    top: 20,
+    right: 20,
+    backgroundColor: 'blue',
+    padding: 10,
+    borderRadius: 5,
+  },
+  buttonText: {
+    color: 'white',
+    fontWeight: 'bold',
+  },
 });
 
-
-
-export default home
+export default home;
