@@ -90,7 +90,7 @@ const login: React.FC = (props: any) => {
       </TouchableOpacity>
       <TouchableOpacity onPress={handleClick} style={[styles.button, styles.registerButton]}>
         
-        <Text style={styles.buttonText}> =></Text>
+        <Text style={styles.buttonText}> '=>'</Text>
         
       </TouchableOpacity>
       </>

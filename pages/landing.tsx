@@ -1,5 +1,11 @@
 import React from "react";
-import { StyleSheet, Text, TouchableOpacity, View, ImageBackground } from "react-native";
+import {
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+  ImageBackground,
+} from "react-native";
 import image from "./../assets/background.jpg";
 
 const landing = (props: any) => {
@@ -8,17 +14,14 @@ const landing = (props: any) => {
     props.navigation.navigate("Login");
   };
   return (
-    <ImageBackground source={image} 
-    //   source={background} // 
+    <ImageBackground
+      source={image}
+      //   source={background} //
       style={styles.background}
-      
     >
       <View style={styles.container}>
         <Text style={styles.title}>Welcome to Good Old Deals</Text>
-        <TouchableOpacity
-          onPress={handleClick}
-          style={styles.getStartedButton}
-        >
+        <TouchableOpacity onPress={handleClick} style={styles.getStartedButton}>
           <Text style={styles.getStartedText}>Get Started</Text>
         </TouchableOpacity>
       </View>
