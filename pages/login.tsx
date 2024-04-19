@@ -54,6 +54,7 @@ const login: React.FC = (props: any) => {
     };  
 
   return (
+    
     <View style={styles.container}>
       <Text style={styles.title}>Login</Text>
       <TextInput
@@ -90,7 +91,7 @@ const login: React.FC = (props: any) => {
       </TouchableOpacity>
       <TouchableOpacity onPress={handleClick} style={[styles.button, styles.registerButton]}>
         
-        <Text style={styles.buttonText}> '=>'</Text>
+        <Text style={styles.buttonText}> "^ = ^"</Text>
         
       </TouchableOpacity>
       </>

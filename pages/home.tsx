@@ -13,13 +13,24 @@ const home: React.FC = (props: any) => {
     console.log("PRESSED!");
     props.navigation.navigate("Profile");
   };
+  const handleClick2 = () => {
+    console.log("PRESSED!");
+    props.navigation.navigate("AddPostScreen");
+  };
   return (
     <View style={styles.container}>
       <TouchableOpacity 
        onPress={handleClick}
        style={styles.buttonContainer}>
 
-        <Text style={styles.buttonText}>Button</Text>
+        <Text style={styles.buttonText}>Profile</Text>
+        
+      </TouchableOpacity>
+      <TouchableOpacity 
+       onPress={handleClick2}
+       style={styles.buttonContainer2}>
+
+        <Text style={styles.buttonText}>Add Post</Text>
         
       </TouchableOpacity>
       <View style={styles.header}>
@@ -111,6 +122,14 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 20,
     right: 20,
+    backgroundColor: 'blue',
+    padding: 10,
+    borderRadius: 5,
+  },
+  buttonContainer2: {
+    position: 'absolute',
+    top: 20,
+    left: 20,
     backgroundColor: 'blue',
     padding: 10,
     borderRadius: 5,
