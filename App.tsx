@@ -2,7 +2,7 @@ import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View } from 'react-native';
 import login from './pages/login';
 import landing from './pages/landing';
-import home from './pages/home';
+import Home from './pages/Home';
 import Profile from './pages/Profile';
 import MapScreen from './pages/MapScreen';
 import AddPostScreen from './pages/AddPostScreen';
@@ -12,6 +12,7 @@ import { createStackNavigator } from '@react-navigation/stack';
 import { NavigationContainer } from "@react-navigation/native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import TabNavigation from './Navigations/TabNavigation';
+import { ClerkProvider, SignedIn, SignedOut } from '@clerk/clerk-expo';
 
 
 const welcome_stack = createStackNavigator();
@@ -49,22 +50,37 @@ const Tab = createBottomTabNavigator();
 
 export default function App() {
   return (
-    
+    <ClerkProvider publishableKey='pk_test_Z3JhbmQtcm9vc3Rlci01MS5jbGVyay5hY2NvdW50cy5kZXYk'>
+    <view className="flex-1 bg-gray" >
+      <SignedIn>
+          <Home/>
+        </SignedIn>
+        </view>
     <NavigationContainer>
       <welcome_stack.Navigator initialRouteName='Welcome'>
         <welcome_stack.Screen name="Welcome" component={landing} options={{ headerShown: false }} />
         <welcome_stack.Screen name="Login" component={login} options={{ headerShown: false }} />
-        <welcome_stack.Screen name="Home" component={home} />
+        <welcome_stack.Screen name="Home" component={Home} />
         <welcome_stack.Screen name="Profile" component={Profile} />
         <welcome_stack.Screen name="Map" component={MapScreen} />
         <welcome_stack.Screen name="AddPostScreen" component={AddPostScreen} />
       </welcome_stack.Navigator>
       
     </NavigationContainer>
+    </ClerkProvider>
   
   );
 }
-
+// function home() {
+//   return (
+//     <SignedIn>
+//       <home />
+//     </SignedIn>
+//     <SignedOut>
+//       <SignInScreen />
+//     </SignedOut>
+//   );
+// }
 const styles = StyleSheet.create({
   container: {
     flex: 1,

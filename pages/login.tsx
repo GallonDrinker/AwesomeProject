@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { StyleSheet, Text, View, TextInput, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { StyleSheet, Text, View, TextInput, TouchableOpacity, ActivityIndicator, Image } from 'react-native';
 
 import {Octicons} from '@expo//vector-icons'
 import { FIREBASE_AUTH } from '../FirebaseConfig';
@@ -56,6 +56,9 @@ const login: React.FC = (props: any) => {
   return (
     
     <View style={styles.container}>
+      {/* <Image source={require('./../assets/images/loginBG.jpg')}
+          style= 
+      /> */}
       <Text style={styles.title}>Login</Text>
       <TextInput
         style={styles.input}

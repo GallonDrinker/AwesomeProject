@@ -7,12 +7,37 @@ import {
   ImageBackground,
 } from "react-native";
 import image from "./../assets/background.jpg";
+import * as WebBrowser from "expo-web-browser";
+import { useOAuth } from "@clerk/clerk-expo";
+import { useWarmUpBrowser } from "../hooks/useWarmUpBrowser";
+WebBrowser.maybeCompleteAuthSession();
 
 const landing = (props: any) => {
+
   const handleClick = () => {
     console.log("PRESSED!");
     props.navigation.navigate("Login");
   };
+  // const SignInWithOAuth = () => {
+    // Warm up the android browser to improve UX
+    // https://docs.expo.dev/guides/authentication/#improving-user-experience
+    // useWarmUpBrowser();
+   
+    // const { startOAuthFlow } = useOAuth({ strategy: "oauth_google" });
+    // const onPress = React.useCallback(async () => {
+    //   try {
+    //     const { createdSessionId, signIn, signUp, setActive } =
+    //       await startOAuthFlow();
+   
+    //     if (createdSessionId) {
+    //       setActive({ session: createdSessionId });
+    //     } else {
+    //       // Use signIn or signUp for next steps such as MFA
+    //     }
+    //   } catch (err) {
+    //     console.error("OAuth error", err);
+    //   }
+    // }, []);
   return (
     <ImageBackground
       source={image}
@@ -24,6 +49,9 @@ const landing = (props: any) => {
         <TouchableOpacity onPress={handleClick} style={styles.getStartedButton}>
           <Text style={styles.getStartedText}>Get Started</Text>
         </TouchableOpacity>
+        {/* <TouchableOpacity onPress={onPress} style={styles.getStartedButton2}>
+          <Text style={styles.getStartedText}>Log In</Text>
+        </TouchableOpacity> */}
       </View>
     </ImageBackground>
   );
@@ -55,6 +83,12 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     paddingVertical: 15,
     paddingHorizontal: 30,
+  },
+  getStartedButton2: {
+    backgroundColor: "#288ff7",
+    borderRadius: 8,
+    paddingVertical: 30,
+    paddingHorizontal: 40,
   },
   getStartedText: {
     fontSize: 18,

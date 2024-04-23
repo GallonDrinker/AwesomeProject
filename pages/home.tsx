@@ -8,7 +8,7 @@ import image from "./../assets/background.jpg";
 //     props.navigation.navigate("Profile");
 //   };
 
-const home: React.FC = (props: any) => {
+const Home: React.FC = (props: any) => {
   const handleClick = () => {
     console.log("PRESSED!");
     props.navigation.navigate("Profile");
@@ -140,4 +140,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default home;
+export default Home;

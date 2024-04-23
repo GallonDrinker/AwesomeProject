@@ -1,7 +1,7 @@
 import { View, Text } from 'react-native'
 import React from 'react'
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
-import home from '../pages/home';
+//import Home from '../pages/Home';
 import ExploreScreen from '../pages/ExploreScreen';
 import AddPostScreen from '../pages/AddPostScreen';
 import Profile from '../pages/Profile';
@@ -13,7 +13,7 @@ const Tab = createBottomTabNavigator();
 export default function TabNavigation() {
   return (
     <Tab.Navigator>
-        <Tab.Screen name='home' component={home}
+        <Tab.Screen name='Home' component={Home}
             options={{
                 tabBarLabel:({color}) => (
                     <Text style ={{color:color,fontSize:12,marginBottom:3}}>Home</Text>
