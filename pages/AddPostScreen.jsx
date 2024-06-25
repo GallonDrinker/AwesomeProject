@@ -1,4 +1,4 @@
-import { StyleSheet, View, Text, Button, Image, ToastAndroid, Alert, ActivityIndicator } from 'react-native'
+import { StyleSheet, View, Text, Button, Image, ToastAndroid, Alert, ActivityIndicator, KeyboardAvoidingView, ScrollView } from 'react-native'
 
 import React, { useEffect, useState } from 'react'
 import { collection, getFirestore, getDocs,addDoc } from "firebase/firestore"
@@ -7,20 +7,40 @@ import { app } from './../FirebaseConfig';
 import { Formik } from 'formik';
 import { TextInput,TouchableOpacity } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
+import * as Location from 'expo-location';
 import * as ImagePicker from 'expo-image-picker';
+import { useUser } from '@clerk/clerk-expo';
 
 export default function AddPostScreen() {
 
     const [image, setImage] = useState(null);
+    const [location, setLocation] = useState(null);//Gets loaction
     const db = getFirestore(app);
     const storage = getStorage();
     const [loading, setLoading] = useState(false);
     const [categoryList, setCategoryList] = useState([]);
+    const {user} = useUser();
 
     useEffect(() => {
         getCategoryList();
     }, [])
-    
+
+    // Function to get the user's current location
+    const getLocation = async () => {
+        try {
+            let { status } = await Location.requestForegroundPermissionsAsync();
+            if (status !== 'granted') {
+                console.error('Permission to access location was denied');
+                return;
+            }
+
+            let location = await Location.getCurrentPositionAsync({});
+            setLocation(location);
+        } catch (error) {
+            console.error('Error getting user location:', error);
+        }
+    };
+    // Function to get the Category from db
     const getCategoryList = async () => {
         setCategoryList([]);
         const querySnapshot = await getDocs(collection(db,'Category'));
@@ -58,7 +78,7 @@ export default function AddPostScreen() {
             /**
              * Converting uri to Blob File
              */
-            setLoading(true)
+            setLoading(true);
     
             const resp = await fetch(image);
             const blob = await resp.blob();
@@ -70,10 +90,23 @@ export default function AddPostScreen() {
             }).then((resp) => {
                 getDownloadURL(storageRef).then(async (downloadUrl) => {
                     console.log(downloadUrl);
-                    value.image = downloadUrl;
-                    // value.userName = user.fullName;
-                    // value.userEmail = user.primaryEmailAddress.emailAddress;
-                    // value.userImage = user.imageUrl;
+                     value.image = downloadUrl;
+                     value.userName = user.fullName;
+                     value.userEmail = user.primaryEmailAddress.emailAddress;
+                     value.userImage = user.imageUrl;
+                    
+                     /**
+                      * Location start
+                      */
+                     if (location) {
+                        value.location = {
+                            latitude: location.coords.latitude,
+                            longitude: location.coords.longitude
+                        };
+                    }
+                    /**
+                      * Location end
+                      */
     
                     const docRef = await addDoc(collection(db, "UserPost"), value)
                     if (docRef.id) {
@@ -86,11 +119,12 @@ export default function AddPostScreen() {
         }
         
   return (
-    <View className="p-10">
+    <KeyboardAvoidingView>
+    < ScrollView className="p-4 py-12 ">
         <Text className="text-[27px] font—bold">Add New Post</Text>
         <Text className="text-[18px] text-lime-800 mb-7">Create New Post and Start Selling</Text>
       <Formik
-      initialValues={{ title: '', desc: '', category: '', address: '', price: '', image: '', userName: '', userEmail: '', userImage: '' }}
+      initialValues={{ title: '', desc: '', category: '', address: '',location: null, price: '', image: '', userName: '', userEmail: '', userImage: '', createdAt:Date.now() }}
       onSubmit={value => onSubmitMethod(value)}
       validate={(values) => {
           const errors = {}
@@ -103,7 +137,7 @@ export default function AddPostScreen() {
       }}
       >
         {({ handleChange, handleBlur, handleSubmit, values, setFieldValue, errors }) => (
-            <View>
+            <ScrollView>
                 <TouchableOpacity onPress={pickImage}>
                             {/* <TouchableOpacity onPress={()=>console.log("image click")}> */}
                             {image ?
@@ -114,9 +148,9 @@ export default function AddPostScreen() {
                                     style={{ width: 180, height: 100, borderRadius: 15 }}
                                 />
                             }
+                </TouchableOpacity>
 
-                        </TouchableOpacity>
-                <TextInput
+                        <TextInput
                             style={styles.input}
                             placeholder='Title'
                             value={values?.title}
@@ -143,7 +177,28 @@ export default function AddPostScreen() {
                             // keyboardType='number-pad'
                             onChangeText={handleChange('address')}
                         />
-                        <View style={{ borderWidth: 1, borderRadius: 10, marginTop: 15 }}>
+                        {/* <TextInput
+                            style={styles.input2}
+                            placeholder='Co-ordinates(Longitude, Latitude)'
+                            value={values?.address}
+                            keyboardType='number-pad'
+                            numberOfLines={2}
+                            onChangeText={handleChange('address')}
+                        /> */}
+
+                            <TouchableOpacity onPress={getLocation} >
+                                <Text className=' text-center border border-x-4' >Get Current Location</Text>
+                            </TouchableOpacity>
+                            {location && (
+                                <TextInput
+                                    style={styles.input}
+                                    value={`Latitude: ${location.coords.latitude}, Longitude: ${location.coords.longitude}`}
+                                    //value={values?.location}
+                                    editable={false}
+                                />
+                            )}
+
+                        <ScrollView style={{ borderWidth: 1, borderRadius: 10, marginTop: 15 }}>
                             <Picker
                                 selectedValue={values?.category}
                                 className="border-2"
@@ -156,14 +211,14 @@ export default function AddPostScreen() {
                                 {/* <Picker.Item label='Dropdown1' value={'Dropdown'}/>  */}
                                 {/* Remove this upper 1 line for db data load  */}
                             </Picker>
-                        </View>
+                        </ScrollView>
                         <TouchableOpacity onPress={handleSubmit}
                             style={{
                                 backgroundColor: loading ? '#ccc' : '#02d170',
 
                             }}
                             disabled={loading}
-                            className="p-5 rounded-full mt-3">
+                            className="p-5 rounded-full mt-3 mb-14">
                             {
                                 loading ?
                                     <ActivityIndicator color='#fff' />
@@ -173,15 +228,30 @@ export default function AddPostScreen() {
                             }
 
                         </TouchableOpacity>
-            </View>
+                        
+            </ScrollView>
             )}
       </Formik>
-    </View>
+    </ScrollView>
+    </KeyboardAvoidingView>
   )
 }
 const styles = StyleSheet.create({
     input: {
         borderWidth: 1,
+        borderRadius: 10,
+        padding: 10,
+        paddingTop: 15,
+        marginTop: 10,
+        marginBottom: 5,
+        paddingHorizontal: 17,
+        textAlignVertical: 'top',
+        fontSize: 17,
+        
+    },
+    input2: {
+        
+        borderWidth: 2,
         borderRadius: 10,
         padding: 10,
         paddingTop: 15,

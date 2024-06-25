@@ -1,239 +1,237 @@
-import React, { useEffect, useState } from "react";
-import {
-    View,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    Image,
-    ActivityIndicator,
-    StyleSheet,
-    ToastAndroid,
-    Alert,
-} from "react-native";
-import { collection, getFirestore, getDocs, addDoc } from "firebase/firestore";
+import { StyleSheet, View, Text, Button, Image, ToastAndroid, Alert, ActivityIndicator, KeyboardAvoidingView, ScrollView } from 'react-native'
+
+import React, { useEffect, useState } from 'react'
+import { collection, getFirestore, getDocs,addDoc } from "firebase/firestore"
 import { getDownloadURL, getStorage, ref, uploadBytes } from "firebase/storage";
-import { app } from "./../FirebaseConfig";
-import { Formik } from "formik";
-import { Picker } from "@react-native-picker/picker";
-import * as ImagePicker from "expo-image-picker";
-
-interface Category {
-    name: string;
-}
-
-interface PostData {
-    title: string;
-    desc: string;
-    category: string;
-    address: string;
-    price: string;
-    image: string;
-    userName: string;
-    userEmail: string;
-    userImage: string;
-}
+import { app } from './../FirebaseConfig';
+import { Formik } from 'formik';
+import { TextInput,TouchableOpacity } from 'react-native';
+import { Picker } from '@react-native-picker/picker';
+import * as Location from 'expo-location';
+import * as ImagePicker from 'expo-image-picker';
+import { useUser } from '@clerk/clerk-expo';
 
 export default function AddPostScreen() {
-    const [image, setImage] = useState<string | null>(null);
-    const [loading, setLoading] = useState<boolean>(false);
-    const [categoryList, setCategoryList] = useState<Category[]>([]);
+
+    const [image, setImage] = useState(null);
+    const [location, setLocation] = useState(null);//Gets loaction
     const db = getFirestore(app);
     const storage = getStorage();
+    const [loading, setLoading] = useState(false);
+    const [categoryList, setCategoryList] = useState([]);
+    const {user} = useUser();
 
     useEffect(() => {
         getCategoryList();
-    }, []);
+    }, [])
 
-    const getCategoryList = async () => {
-        setCategoryList([]);
-        const querySnapshot = await getDocs(collection(db, "Category"));
+    // Function to get the user's current location
+    const getLocation = async () => {
+        try {
+            let { status } = await Location.requestForegroundPermissionsAsync();
+            if (status !== 'granted') {
+                console.error('Permission to access location was denied');
+                return;
+            }
 
-        const categories: Category[] = [];
-        querySnapshot.forEach((doc) => {
-            categories.push(doc.data() as Category);
-        });
-        setCategoryList(categories);
-    };
-
-    const pickImage = async () => {
-        let result = await ImagePicker.launchImageLibraryAsync({
-            mediaTypes: ImagePicker.MediaTypeOptions.All,
-            allowsEditing: true,
-            aspect: [16, 9],
-            quality: 1,
-        });
-
-        if (!result.canceled) {
-            setImage(result.assets[0].uri);
+            let location = await Location.getCurrentPositionAsync({});
+            setLocation(location);
+        } catch (error) {
+            console.error('Error getting user location:', error);
         }
     };
+    // Function to get the Category from db
+    const getCategoryList = async () => {
+        setCategoryList([]);
+        const querySnapshot = await getDocs(collection(db,'Category'));
 
-    const onSubmitMethod = async (values: PostData) => {
-        setLoading(true);
+        querySnapshot.forEach((doc) => {
+            console.log("Docs:", doc.data());
+            setCategoryList(categoryList => [...categoryList, doc.data()])
+        })
+    }
 
-        const resp = await fetch(image as string);
-        const blob = await resp.blob();
-        const storageRef = ref(storage, "communityPost/" + Date.now() + ".jpg");
 
-        uploadBytes(storageRef, blob).then(() => {
-            getDownloadURL(storageRef).then(async (downloadUrl) => {
-                values.image = downloadUrl;
-                const docRef = await addDoc(collection(db, "UserPost"), values);
-                if (docRef.id) {
-                    setLoading(false);
-                    Alert.alert("Success!!!", "Post Added Successfully.");
-                }
+        /**
+     * Local Storage image picker code
+     */
+        const pickImage = async () => {
+            // No permissions request is necessary for launching the image library
+            let result = await ImagePicker.launchImageLibraryAsync({
+                mediaTypes: ImagePicker.MediaTypeOptions.All,
+                allowsEditing: true,
+                aspect: [16, 9],
+                quality: 1,
             });
-        });
-    };
+    
+            console.log(result);
+    
+            if (!result.canceled) {
+                setImage(result.assets[0].uri);
+            }
+        };
 
-    return (
-        <View style={styles.container}>
-            <Text style={styles.heading}>Add New Post</Text>
-            <Text style={styles.subHeading}>Create New Post and Start Selling</Text>
-            <Formik
-                initialValues={{
-                    title: "",
-                    desc: "",
-                    category: "",
-                    address: "",
-                    price: "",
-                    image: "",
-                    userName: "",
-                    userEmail: "",
-                    userImage: "",
-                }}
-                onSubmit={(values) => onSubmitMethod(values)}
-                validate={(values) => {
-                    const errors: Partial<PostData> = {};
-                    if (!values.title) {
-                        ToastAndroid.show("Title must be filled", ToastAndroid.SHORT);
-                        errors.title = "Title must be filled";
+
+        const onSubmitMethod = async (value) => {
+            //value.image = image;
+            // console.log(value)
+            /**
+             * Converting uri to Blob File
+             */
+            setLoading(true)
+    
+            const resp = await fetch(image);
+            const blob = await resp.blob();
+            const storageRef = ref(storage, 'communityPost/' + Date.now() + ".jpg");
+    
+            // 'file' comes from the Blob or File API
+            uploadBytes(storageRef, blob).then((snapshot) => {
+                console.log('Uploaded a blob or file!');
+            }).then((resp) => {
+                getDownloadURL(storageRef).then(async (downloadUrl) => {
+                    console.log(downloadUrl);
+                    value.image = downloadUrl;
+                     value.userName = user.fullName;
+                     value.userEmail = user.primaryEmailAddress.emailAddress;
+                     value.userImage = user.imageUrl;
+    
+                    const docRef = await addDoc(collection(db, "UserPost"), value)
+                    if (docRef.id) {
+                        setLoading(false);
+                        Alert.alert('Success!!!', 'Post Added Successfully.')
+                        console.log("Document Added!!")
                     }
-                    return errors;
-                }}
-            >
-                {({
-                    handleChange,
-                    handleBlur,
-                    handleSubmit,
-                    values,
-                    setFieldValue,
-                }) => (
-                    <View>
-                        <TouchableOpacity onPress={pickImage}>
-                            {image ? (
-                                <Image source={{ uri: image }} style={styles.image} />
-                            ) : (
-                                <Image
-                                    source={require("./../assets/images/image_placeholder.png")}
-                                    style={styles.image}
+                })
+            });
+        }
+        
+  return (
+    <KeyboardAvoidingView>
+    < ScrollView className="p-4 py-12 ">
+        <Text className="text-[27px] font—bold">Add New Post</Text>
+        <Text className="text-[18px] text-lime-800 mb-7">Create New Post and Start Selling</Text>
+      <Formik
+      initialValues={{ title: '', desc: '', category: '', address: '',coordinates:'', price: '', image: '', userName: '', userEmail: '', userImage: '', createdAt:Date.now() }}
+      onSubmit={value => onSubmitMethod(value)}
+      validate={(values) => {
+          const errors = {}
+          if (!values.title) {
+              console.log("Title not present");
+              ToastAndroid.show('Title must be filled', ToastAndroid.SHORT)
+              errors.name = "Title must be filled"
+          }
+          return errors
+      }}
+      >
+        {({ handleChange, handleBlur, handleSubmit, values, setFieldValue, errors }) => (
+            <ScrollView>
+                <TouchableOpacity onPress={pickImage}>
+                            {/* <TouchableOpacity onPress={()=>console.log("image click")}> */}
+                            {image ?
+                                <Image source={{ uri: image }} style={{ width: 180, height: 100, borderRadius: 15 }} />
+                                :
+                                <Image source={require('./../assets/images/image_placeholder.png')}
+                                    // <Image source={require('I:/2.MAD_TEST/AwesomeProject/assets/images/image_placeholder.PNG')}
+                                    style={{ width: 180, height: 100, borderRadius: 15 }}
                                 />
-                            )}
+                            }
+
                         </TouchableOpacity>
                         <TextInput
                             style={styles.input}
-                            placeholder="Title"
+                            placeholder='Title'
                             value={values?.title}
-                            onChangeText={handleChange("title")}
+                            onChangeText={handleChange('title')}
                         />
                         <TextInput
                             style={styles.input}
-                            placeholder="Description"
+                            placeholder='Description'
                             value={values?.desc}
                             numberOfLines={5}
-                            onChangeText={handleChange("desc")}
+                            onChangeText={handleChange('desc')}
                         />
                         <TextInput
                             style={styles.input}
-                            placeholder="Price"
+                            placeholder='Price'
                             value={values?.price}
-                            keyboardType="number-pad"
-                            onChangeText={handleChange("price")}
+                            keyboardType='number-pad'
+                            onChangeText={handleChange('price')}
                         />
                         <TextInput
                             style={styles.input}
-                            placeholder="Address"
+                            placeholder='Address'
                             value={values?.address}
                             // keyboardType='number-pad'
-                            onChangeText={handleChange("address")}
+                            onChangeText={handleChange('address')}
                         />
-                        {/* Category list dropdown */}
-                        <View style={{ borderWidth: 1, borderRadius: 10, marginTop: 15 }}>
+                        <TextInput
+                            style={styles.input2}
+                            placeholder='Co-ordinates(Longitude, Latitude)'
+                            value={values?.address}
+                            keyboardType='number-pad'
+                            numberOfLines={2}
+                            onChangeText={handleChange('address')}
+                        />
+                        <ScrollView style={{ borderWidth: 1, borderRadius: 10, marginTop: 15 }}>
                             <Picker
                                 selectedValue={values?.category}
                                 className="border-2"
-                                onValueChange={(itemValue) =>
-                                    setFieldValue("category", itemValue)
-                                }
+                                onValueChange={itemValue => setFieldValue('category', itemValue)}
                             >
-                                {categoryList.length > 0 &&
-                                    categoryList?.map((item, index) => (
-                                        <Picker.Item
-                                            key={index}
-                                            label={item?.name}
-                                            value={item?.name}
-                                        />
-                                    ))}
+                                {categoryList.length > 0 && categoryList?.map((item, index) => (
+                                    <Picker.Item key={index}
+                                        label={item?.name} value={item?.name} />
+                                ))}
                                 {/* <Picker.Item label='Dropdown1' value={'Dropdown'}/>  */}
                                 {/* Remove this upper 1 line for db data load  */}
                             </Picker>
-                        </View>
-                        <TouchableOpacity
-                            onPress={() => handleSubmit()}
-                            style={[
-                                styles.button,
-                                { backgroundColor: loading ? "#ccc" : "#007BFF" },
-                            ]}
-                            disabled={loading}
-                        >
-                            {loading ? (
-                                <ActivityIndicator color="#fff" />
-                            ) : (
-                                <Text style={styles.buttonText}>Submit</Text>
-                            )}
-                        </TouchableOpacity>
-                    </View>
-                )}
-            </Formik>
-        </View>
-    );
-}
+                        </ScrollView>
+                        <TouchableOpacity onPress={handleSubmit}
+                            style={{
+                                backgroundColor: loading ? '#ccc' : '#02d170',
 
+                            }}
+                            disabled={loading}
+                            className="p-5 rounded-full mt-3 mb-14">
+                            {
+                                loading ?
+                                    <ActivityIndicator color='#fff' />
+                                    :
+                                    <Text className="text-slate-800 text-center text-[16px]">Submit</Text>
+
+                            }
+
+                        </TouchableOpacity>
+                        
+            </ScrollView>
+            )}
+      </Formik>
+    </ScrollView>
+    </KeyboardAvoidingView>
+  )
+}
 const styles = StyleSheet.create({
-    container: {
-        padding: 10,
-    },
-    heading: {
-        fontSize: 27,
-        fontWeight: "bold",
-    },
-    subHeading: {
-        fontSize: 18,
-        color: "#888",
-        marginBottom: 7,
-    },
-    image: {
-        width: 180,
-        height: 100,
-        borderRadius: 15,
-    },
     input: {
         borderWidth: 1,
         borderRadius: 10,
         padding: 10,
+        paddingTop: 15,
         marginTop: 10,
         marginBottom: 5,
+        paddingHorizontal: 17,
+        textAlignVertical: 'top',
         fontSize: 17,
     },
-    button: {
-        padding: 5,
-        borderRadius: 20,
+    input2: {
+        
+        borderWidth: 2,
+        borderRadius: 10,
+        padding: 10,
+        paddingTop: 15,
         marginTop: 10,
-    },
-    buttonText: {
-        fontSize: 16,
-        color: "white",
-        textAlign: "center",
-    },
-});
+        marginBottom: 5,
+        paddingHorizontal: 17,
+        textAlignVertical: 'top',
+        fontSize: 17,
+    }
+})
